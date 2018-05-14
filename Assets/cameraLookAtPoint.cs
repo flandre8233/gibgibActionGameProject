@@ -11,17 +11,19 @@ public class cameraLookAtPoint : SingletonMonoBehavior<cameraLookAtPoint> {
 	
 	// Update is called once per frame
 	void Update () {
+        gameObject.transform.rotation = Quaternion.Euler(gameObject.transform.rotation.eulerAngles.x, gameObject.transform.rotation.eulerAngles.y  + playermovement.instance.moveHorizontal * 53 * Time.deltaTime, gameObject.transform.rotation.eulerAngles.z);
         forceFollowPlayerCentre();
 
-
-        gameObject.transform.rotation = Quaternion.Euler(gameObject.transform.rotation.eulerAngles.x, gameObject.transform.rotation.eulerAngles.y  + playermovement.instance.moveHorizontal * 25 * Time.deltaTime, gameObject.transform.rotation.eulerAngles.z);
-
+        if (playermovement.instance.moveVertical < 0 || playermovement.instance.moveVertical > 0) {
+            transform.position = Vector3.Lerp(transform.position, targetPoint, Time.deltaTime * 4);
+        } else {
+            transform.position = Vector3.Lerp(transform.position, targetPoint, Time.deltaTime * 2);
+        }
         /*
         if (Input.GetKeyUp(KeyCode.A) || Input.GetKeyUp(KeyCode.D)) {
             forceFollowPlayerCentre();
         }
         */
-        transform.position = Vector3.Lerp(transform.position, targetPoint, Time.deltaTime * 2);
 
     }
 

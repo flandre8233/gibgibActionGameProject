@@ -12,7 +12,7 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
 
     CharacterController playerController;
     public float speed = 0f;
-    float orl_speed = 7f;
+    public float orl_speed = 7f;
     public float gravity = 5f;
     public float jump = 3f;
     float heightY = 0;
@@ -34,14 +34,14 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
    public float moveHorizontal;
     public float moveVertical;
     void FixedUpdate() {
-        if (Input.GetKeyDown(KeyCode.W)) {
-            changeFaceDir(0);
-        } else if (Input.GetKeyDown(KeyCode.S)) {
-            changeFaceDir(180);
-        } else if (Input.GetKeyDown(KeyCode.A)) {
-            changeFaceDir(270);
-        } else if (Input.GetKeyDown(KeyCode.D)) {
-            changeFaceDir(90);
+        if (Input.GetKey(KeyCode.W)) {
+            changeFaceDir(0 + cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y);
+        } else if (Input.GetKey(KeyCode.S)) {
+            changeFaceDir(180 + cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y);
+        } else if (Input.GetKey(KeyCode.A)) {
+            changeFaceDir(270 + cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y);
+        } else if (Input.GetKey(KeyCode.D)) {
+            changeFaceDir(90 + cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y);
 
         }
 
