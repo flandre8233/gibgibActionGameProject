@@ -21,7 +21,7 @@ public class FloatLerp : lerpMoveSystem<float> {
 public abstract class lerpMoveSystem<T> {
     bool _isLerping = false;
     float moveNeedTime = 0f;
-    float lerpTime;
+   public float lerpTime;
     float _curvedValue;
     public delegate void lerpMoveDelegate();
     lerpMoveDelegate onStartDg;
