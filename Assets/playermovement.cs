@@ -34,27 +34,39 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
    public float moveHorizontal;
     public float moveVertical;
     void FixedUpdate() {
-        if (Input.GetKey(KeyCode.W)) {
-            changeFaceDir(0 + cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y);
-        } else if (Input.GetKey(KeyCode.S)) {
-            changeFaceDir(180 + cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y);
-        } else if (Input.GetKey(KeyCode.A)) {
-            changeFaceDir(270 + cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y);
-        } else if (Input.GetKey(KeyCode.D)) {
-            changeFaceDir(90 + cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y);
-
-        }
-
-
+        int inputCount = 0;
         float angle = transform.rotation.eulerAngles.y;
         playerCompassPosition = getCompassPosition(angle);
 
         for (int i = 0; i < keycode.Length; i++) {
             keycode[ i ].update(raiseMovement, dropMovement, passTime);
+            print(keycode[ i ].isRaise);
+            if (keycode[i].isRaise) {
+                inputCount++;
+            }
         }
 
         moveHorizontal = (-keycode[ 2 ].val) + keycode[ 3 ].val;
         moveVertical = (-keycode[ 1 ].val) + keycode[ 0 ].val;
+
+        float inputAngles = 0;
+        if (inputCount>0) {
+            if (keycode[ 0 ].isRaise) {
+                inputAngles += 0;
+            }  if (keycode[ 1 ].isRaise) {
+                inputAngles += 180;
+            }  if (keycode[ 2 ].isRaise) {
+                inputAngles += 270;
+            }  if (keycode[ 3 ].isRaise) {
+                inputAngles += 90;
+            }
+            if (inputCount>1 && keycode[ 0 ].isRaise && keycode[ 2 ].isRaise) {
+                inputAngles += 360;
+            }
+            changeFaceDir( (inputAngles/inputCount) + cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y);
+        }
+
+
 
         //moveHorizontal = Input.GetAxis("Horizontal");
         //moveVertical = Input.GetAxis("Vertical");
@@ -102,30 +114,31 @@ public class customizeMovement {
 
     FloatLerp raiseLerpSystem;
     FloatLerp dropLerpSystem;
-    bool isRaise = false;
+   public bool isRaise = false;
     public float update(AnimationCurve raiseMovement, AnimationCurve dropMovement,float passTime ) {
-      
-        if (Input.GetKeyDown(keyCode)) {
-            raiseLerpSystem = new FloatLerp();
-            isRaise = true;
-            raiseLerpSystem.startLerp(val, 1, raiseMovement, passTime);
-        }
-        if (Input.GetKeyUp(keyCode)) {
-            dropLerpSystem = new FloatLerp();
-            isRaise = false;
-            dropLerpSystem.var = val;
-            dropLerpSystem.startLerp(val, 0, dropMovement, passTime);
-        }
-        if (!Input.GetKey(keyCode)) {
-            isRaise = false;
-        }
-        if (isRaise) {
+        if (Input.GetKey(keyCode)) {
+            if (!isRaise) {
+                isRaise = true;
+                raiseLerpSystem = new FloatLerp();
+                dropLerpSystem = new FloatLerp();
+                raiseLerpSystem.startLerp(val, 1, raiseMovement, passTime);
+            }
             if (raiseLerpSystem != null) {
                 if (raiseLerpSystem.isLerping) {
                     val = raiseLerpSystem.update();
                 }
             }
         } else {
+            if (isRaise) {
+                isRaise = false;
+                raiseLerpSystem = new FloatLerp();
+                dropLerpSystem = new FloatLerp();
+                dropLerpSystem.var = val;
+                dropLerpSystem.startLerp(val, 0, dropMovement, passTime);
+            }
+
+
+
             if (dropLerpSystem != null) {
                 if (dropLerpSystem.isLerping) {
                     val = dropLerpSystem.update();
