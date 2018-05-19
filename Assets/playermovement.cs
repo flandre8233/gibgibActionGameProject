@@ -40,7 +40,6 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
 
         for (int i = 0; i < keycode.Length; i++) {
             keycode[ i ].update(raiseMovement, dropMovement, passTime);
-            print(keycode[ i ].isRaise);
             if (keycode[i].isRaise) {
                 inputCount++;
             }
@@ -50,26 +49,29 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
         moveVertical = (-keycode[ 1 ].val) + keycode[ 0 ].val;
 
         float inputAngles = 0;
-        if (inputCount>0) {
-            if (keycode[ 0 ].isRaise) {
-                inputAngles += 0;
-            }  if (keycode[ 1 ].isRaise) {
-                inputAngles += 180;
-            }  if (keycode[ 2 ].isRaise) {
-                inputAngles += 270;
-            }  if (keycode[ 3 ].isRaise) {
-                inputAngles += 90;
+
+        if (!cameraLookAtPoint.instance.lockDown) {
+            if (inputCount > 0) {
+                if (keycode[ 0 ].isRaise) {
+                    inputAngles += 0;
+                }
+                if (keycode[ 1 ].isRaise) {
+                    inputAngles += 180;
+                }
+                if (keycode[ 2 ].isRaise) {
+                    inputAngles += 270;
+                }
+                if (keycode[ 3 ].isRaise) {
+                    inputAngles += 90;
+                }
+                if (inputCount > 1 && keycode[ 0 ].isRaise && keycode[ 2 ].isRaise) {
+                    inputAngles += 360;
+                }
+                changeFaceDir((inputAngles / inputCount) + cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y);
             }
-            if (inputCount>1 && keycode[ 0 ].isRaise && keycode[ 2 ].isRaise) {
-                inputAngles += 360;
-            }
-            changeFaceDir( (inputAngles/inputCount) + cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y);
+        } else {
+            changeFaceDir(cameraLookAtPoint.instance.lockDownTargetlookAtEuler.y);
         }
-
-
-
-        //moveHorizontal = Input.GetAxis("Horizontal");
-        //moveVertical = Input.GetAxis("Vertical");
 
         Vector3 moveDir = new Vector3(moveHorizontal, 0.0f , moveVertical)*(speed * Time.deltaTime);
         heightY -= gravity * Time.deltaTime;
