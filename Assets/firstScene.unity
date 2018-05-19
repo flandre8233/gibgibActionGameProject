@@ -128,7 +128,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!23 &8858810
 MeshRenderer:
@@ -309,7 +309,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!23 &279429039
 MeshRenderer:
@@ -419,7 +419,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lockDownTarget: {fileID: 1190633119}
-  lockDown: 0
+  mouseSensitivity: 100
+  clampAngle: 80
   lockDownTargetlookAtEuler: {x: 0, y: 0, z: 0}
 --- !u!1 &328402298
 GameObject:
@@ -437,7 +438,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!23 &328402299
 MeshRenderer:
@@ -614,7 +615,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!23 &918553851
 MeshRenderer:
@@ -988,6 +989,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 1407232333}
+  - component: {fileID: 1407232334}
   m_Layer: 0
   m_Name: player
   m_TagString: Untagged
@@ -1010,6 +1012,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1407232334
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1407232332}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afd7fbfdeb319884baf6d8b81d574f27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isLockDown: 0
 --- !u!1 &1427607875
 GameObject:
   m_ObjectHideFlags: 0

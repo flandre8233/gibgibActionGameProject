@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class cameraScript : MonoBehaviour {
+public class cameraScript : SingletonMonoBehavior<cameraScript> {
     [SerializeField]
     float orlCameraDisantce;
     [SerializeField]
@@ -16,24 +16,16 @@ public class cameraScript : MonoBehaviour {
     Transform lookingObject;
     [SerializeField]
     Vector3 lookingAngles;
-
-
-
     private void Start() {
         cameraTransform = transform;
     }
     // Update is called once per frame
-    void Update () {
-        //getVector3ToVector3LookAtRotation();
-        if (cameraLookAtPoint.instance.lockDown) {
+    public void cameraScriptUpdate() {
+        if (playerController.instance.isLockDown) {
             cameraDisantce = orlCameraDisantce/1.2f;
-
-            //cameraDisantce = orlCameraDisantce + Vector3.Distance(playermovement.instance.transform.position,cameraLookAtPoint.instance.lockDownTarget.position);
         } else {
             cameraDisantce = orlCameraDisantce;
         }
-
-        //cameraTransform.localPosition = Quaternion.Euler(lookingAngles) * -(Vector3.forward * cameraDisantce);
         cameraTransform.localPosition = new Vector3(0,cameraYOffset, -cameraDisantce);
 
 

@@ -5,7 +5,6 @@ using UnityEngine;
 public class cameraLookAtPoint : SingletonMonoBehavior<cameraLookAtPoint> {
     [SerializeField]
     public Transform lockDownTarget;
-    public bool lockDown = false;
 
     Vector3 targetPoint ;
 
@@ -29,8 +28,8 @@ public class cameraLookAtPoint : SingletonMonoBehavior<cameraLookAtPoint> {
 
 
     // Update is called once per frame
-    void Update () {
-        if (lockDown) {
+    public void cameraLookAtPointUpdate () {
+        if (playerController.instance.isLockDown) {
             Quaternion lookAtTarget = gameModel.instance.getVector3ToVector3LookAtRotation(playermovement.instance.transform.position, lockDownTarget.transform.position);
             lockDownTargetlookAtEuler = lookAtTarget.eulerAngles;
             gameObject.transform.rotation = Quaternion.Euler(lockDownTargetlookAtEuler.x, lockDownTargetlookAtEuler.y + playermovement.instance.moveHorizontal * 53 * Time.deltaTime, lockDownTargetlookAtEuler.z);
@@ -46,14 +45,10 @@ public class cameraLookAtPoint : SingletonMonoBehavior<cameraLookAtPoint> {
         } else {
             transform.position = Vector3.Lerp(transform.position, targetPoint, Time.deltaTime * lerpSpeed);
         }
-        if (Input.GetKeyDown("c")) {
-            lockDown = !lockDown;
-        }
 
-
-        if (!lockDown) {
+        if (!playerController.instance.isLockDown) {
             mouseControllCameraAngles();
-        } 
+        }
 
     }
 
@@ -75,7 +70,7 @@ public class cameraLookAtPoint : SingletonMonoBehavior<cameraLookAtPoint> {
     }
 
     void forceFollowTargetCentre() {
-        if (lockDown) {
+        if (playerController.instance.isLockDown) {
             targetPoint = playermovement.instance.gameObject.transform.position;
         } else {
             targetPoint = playermovement.instance.gameObject.transform.position;
