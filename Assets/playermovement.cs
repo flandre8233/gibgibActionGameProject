@@ -14,6 +14,8 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
     public float orl_speed = 7f;
     public float gravity = 5f;
     public float jump = 3f;
+    public float turnAroundSpeed;
+    public float turnAroundDetectAngles;
     float heightY = 0;
     
     public customizeMovement[] keycode;
@@ -22,6 +24,13 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
     public float passTime;
 
     public CompassPosition playerCompassPosition;
+    FloatLerp HraiseLerpSystem = new FloatLerp();
+    FloatLerp HdropLerpSystem = new FloatLerp();
+    FloatLerp VraiseLerpSystem = new FloatLerp();
+    FloatLerp VdropLerpSystem = new FloatLerp();
+
+    [SerializeField]
+    Animator playerModelAnimator;
 
     // Use this for initialization
     void Start() {
@@ -37,8 +46,7 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
         playerCompassPosition = getCompassPosition(angle);
 
 
-
-        if (playerController.instance.useKeyboard) {
+        if (playerController.instance.isKeyboard) {
             for (int i = 0; i < keycode.Length; i++) {
                 keycode[ i ].update(raiseMovement, dropMovement, passTime);
                 if (keycode[ i ].isRaise) {
@@ -89,27 +97,80 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
             moveDir = Quaternion.Euler(0, cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y, 0) * moveDir;
             playerCharController.Move(moveDir);
         } else {
-            moveHorizontal = Input.GetAxis("Horizontal");
-            moveVertical = -Input.GetAxis("Vertical");
-            if (!playerController.instance.isLockDown) {
 
-                float inputAngles = 0;
-                inputAngles = Mathf.Atan2(Input.GetAxis("Vertical"), Input.GetAxis("Horizontal")) * Mathf.Rad2Deg;
-                inputAngles -= 90 - 180;
-                changeFaceDir(inputAngles + cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y);
-                print(new Vector2(moveHorizontal, moveVertical));
+            moveHorizontal = Input.GetAxis("Horizontal");
+            moveVertical = Input.GetAxis("Vertical");
+            if (moveHorizontal < 0.1F && moveHorizontal > -0.1F) {
+                moveHorizontal = 0;
+            }
+            if (moveVertical < 0.1F && moveVertical > -0.1F) {
+                moveVertical = 0;
+            }
+            /*
+            if (Input.GetAxis("Horizontal") > moveHorizontal) {
+                HdropLerpSystem = new FloatLerp();
+                HraiseLerpSystem.startLerp(moveHorizontal, Input.GetAxis("Horizontal"), raiseMovement, passTime);
+                if (HraiseLerpSystem != null && HraiseLerpSystem.isLerping) {
+                        moveHorizontal = HraiseLerpSystem.update();
+                }
+            } else {
+                HraiseLerpSystem = new FloatLerp();
+                HdropLerpSystem.startLerp(moveHorizontal, Input.GetAxis("Horizontal"), dropMovement, passTime);
+                if (HdropLerpSystem != null && HdropLerpSystem.isLerping) {
+                        moveHorizontal = HdropLerpSystem.update();
+                }
+            }
+
+            if (Input.GetAxis("Horizontal") > moveVertical) {
+                VdropLerpSystem = new FloatLerp();
+                VraiseLerpSystem.startLerp(moveVertical, Input.GetAxis("Vertical"), raiseMovement, passTime);
+                if (VraiseLerpSystem != null && VraiseLerpSystem.isLerping) {
+                        moveVertical = VraiseLerpSystem.update();
+                }
+            } else {
+                VraiseLerpSystem = new FloatLerp();
+                VdropLerpSystem.startLerp(moveVertical,  Input.GetAxis("Vertical"), dropMovement, passTime);
+                if (VdropLerpSystem != null && VdropLerpSystem.isLerping) {
+                        moveVertical = VdropLerpSystem.update();
+                }
+            }
+            */
+            
+            float inputAngles = 0;
+            if (!playerController.instance.isLockDown) {
+                if (moveHorizontal == 0 && moveVertical == 0) {
+                } else {
+                    inputAngles = Mathf.Atan2(moveVertical, moveHorizontal) * Mathf.Rad2Deg;
+                    inputAngles -= 90 - 180;
+                    inputAngles += cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y;
+                    if (inputAngles >= 360) {
+                        inputAngles -= 360;
+                    } else if (inputAngles < 0) {
+                        inputAngles += 360;
+                    }
+                    //changeFaceDir(inputAngles + cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(transform.rotation.eulerAngles.x, inputAngles, transform.rotation.eulerAngles.z),Time.deltaTime* turnAroundSpeed);
+
+                    print(transform.rotation.eulerAngles.y + "  " + inputAngles);
+                    if (Mathf.Abs(transform.rotation.eulerAngles.y - inputAngles) >= turnAroundDetectAngles && Mathf.Abs(transform.rotation.eulerAngles.y - inputAngles) <= 180) {
+                        print("stop");
+                        moveHorizontal = 0;
+                        moveVertical = 0;
+                    }
+                }
             } else {
                 changeFaceDir(cameraLookAtPoint.instance.lockDownTargetlookAtEuler.y);
             }
 
 
-            Vector3 moveDir = new Vector3(moveHorizontal, 0.0f, moveVertical) * (speed * Time.deltaTime);
+            Vector3 moveDir = new Vector3(moveHorizontal, 0.0f, -moveVertical) * (speed * Time.deltaTime);
             heightY -= gravity * Time.deltaTime;
             moveDir.y = heightY;
             moveDir = Quaternion.Euler(0, cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y, 0) * moveDir;
             playerCharController.Move(moveDir);
         }
-
+        playerModelAnimator.SetFloat("HInput", (Mathf.Abs(moveHorizontal )));
+        playerModelAnimator.SetFloat("VInput", (Mathf.Abs(moveVertical)));
     }
 
     public void changeFaceDir(float anglesY) {

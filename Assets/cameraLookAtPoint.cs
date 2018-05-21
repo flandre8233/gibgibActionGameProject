@@ -8,7 +8,8 @@ public class cameraLookAtPoint : SingletonMonoBehavior<cameraLookAtPoint> {
 
     Vector3 targetPoint ;
 
-    float orlLerpSpeed = 2;
+    [SerializeField]
+    float orlLerpSpeed;
     float lerpSpeed;
 
     public float mouseSensitivity = 100.0f;
@@ -40,11 +41,15 @@ public class cameraLookAtPoint : SingletonMonoBehavior<cameraLookAtPoint> {
         }
         forceFollowTargetCentre();
 
-        if (playermovement.instance.moveVertical < 0 || playermovement.instance.moveVertical > 0) {
-            transform.position = Vector3.Lerp(transform.position, targetPoint, Time.deltaTime * lerpSpeed * 2);
+        /*
+        if ( Mathf.Abs(playermovement.instance.moveHorizontal)<=0.1f && Mathf.Abs(playermovement.instance.moveVertical) >= 0.1f ) {
+            transform.position = Vector3.Lerp(transform.position, targetPoint, Time.deltaTime * lerpSpeed * 3f);
         } else {
             transform.position = Vector3.Lerp(transform.position, targetPoint, Time.deltaTime * lerpSpeed);
         }
+        */
+
+        transform.position = Vector3.Lerp(transform.position, targetPoint, Time.deltaTime * lerpSpeed * (1+(3f* Mathf.Abs(playermovement.instance.moveVertical) )));
 
         if (!playerController.instance.isLockDown) {
             mouseControllCameraAngles();
@@ -57,8 +62,24 @@ public class cameraLookAtPoint : SingletonMonoBehavior<cameraLookAtPoint> {
 
         transform.LookAt(mycam.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, mycam.nearClipPlane)), Vector3.up);
 
-        float mouseX = Input.GetAxis("Mouse X");
-        float mouseY = -Input.GetAxis("Mouse Y");
+        float mouseX = 0;
+        float mouseY = 0;
+        if (playerController.instance.isKeyboard) {
+            mouseX = Input.GetAxis("Mouse X");
+            mouseY = -Input.GetAxis("Mouse Y");
+        } else {
+            mouseX = Input.GetAxis("joystick X");
+            mouseY = -Input.GetAxis("joystick Y");
+            if (mouseX < 0.15F && mouseX > -0.15F) {
+                mouseX = 0;
+            }
+            if (mouseY < 0.15F && mouseY > -0.15F) {
+                mouseY = 0;
+            }
+            mouseX *= 2.2f;
+            mouseY *= 2.2f;
+        }
+   
 
         rotY += mouseX * mouseSensitivity * Time.deltaTime;
         rotX += mouseY * mouseSensitivity * Time.deltaTime;

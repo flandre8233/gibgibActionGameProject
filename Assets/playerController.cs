@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class playerController : SingletonMonoBehavior<playerController> {
     public bool isLockDown = false;
-    public bool useKeyboard = false;
+    public bool isKeyboard = false;
 
     // Use this for initialization
     void Start () {
@@ -13,7 +13,7 @@ public class playerController : SingletonMonoBehavior<playerController> {
 	
 	// Update is called once per frame
 	void Update () {
-        if (useKeyboard) {
+        if (isKeyboard) {
             if (Input.GetKeyDown("c")) {
                 isLockDown = !isLockDown;
             }
