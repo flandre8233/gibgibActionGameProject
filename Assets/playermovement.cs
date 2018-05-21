@@ -150,10 +150,7 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
                     }
                     //changeFaceDir(inputAngles + cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y);
                     transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(transform.rotation.eulerAngles.x, inputAngles, transform.rotation.eulerAngles.z),Time.deltaTime* turnAroundSpeed);
-
-                    print(transform.rotation.eulerAngles.y + "  " + inputAngles);
-                    if (Mathf.Abs(transform.rotation.eulerAngles.y - inputAngles) >= turnAroundDetectAngles && Mathf.Abs(transform.rotation.eulerAngles.y - inputAngles) <= 180) {
-                        print("stop");
+                    if (Mathf.Abs(transform.rotation.eulerAngles.y - inputAngles) >= turnAroundDetectAngles && Mathf.Abs(transform.rotation.eulerAngles.y - inputAngles) <= 210) {
                         moveHorizontal = 0;
                         moveVertical = 0;
                     }
@@ -161,7 +158,6 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
             } else {
                 changeFaceDir(cameraLookAtPoint.instance.lockDownTargetlookAtEuler.y);
             }
-
 
             Vector3 moveDir = new Vector3(moveHorizontal, 0.0f, -moveVertical) * (speed * Time.deltaTime);
             heightY -= gravity * Time.deltaTime;
