@@ -12,14 +12,16 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
     CharacterController playerCharController;
     public float speed = 0f;
     public float orl_speed = 7f;
-    public float gravity = 5f;
+    public float gravity = 9.8f;
     public float jump = 3f;
     public float turnAroundSpeed;
     public float turnAroundDetectAngles;
     float heightY = 0;
     
     public customizeMovement[] keycode;
+    [SerializeField]
     public AnimationCurve raiseMovement;
+    [SerializeField]
     public AnimationCurve dropMovement;
     public float passTime;
 
@@ -32,28 +34,51 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
     [SerializeField]
     Animator playerModelAnimator;
 
+    public Vector3 slidingDirection;
+    public bool isSliding;
+
+    [SerializeField]
+    bool isSprint;
+
+    FloatLerp sprintSpeedRaiseLerpSystem = new FloatLerp();
+
+    [SerializeField]
+    float orlSprintSpeedPercentage;
+    [SerializeField]
+    float sprintTime;
+    [SerializeField]
+    float SprintSpeedPercentage;
+    [SerializeField]
+     AnimationCurve sprintSpeedRaiseMovement;
+
+    
+
+
     // Use this for initialization
     void Start() {
         speed = orl_speed;
         playerCharController = GetComponent<CharacterController>();
+        SprintSpeedPercentage = 100;
     }
 
    public float moveHorizontal;
     public float moveVertical;
-   public void playermovementUpdate() {
-        int inputCount = 0;
+    float inAirTime = 0;
+    public void playermovementUpdate() {
         float angle = transform.rotation.eulerAngles.y;
         playerCompassPosition = getCompassPosition(angle);
 
+        gravityControll();
 
         if (playerController.instance.isKeyboard) {
+            int inputCount = 0;
+
             for (int i = 0; i < keycode.Length; i++) {
                 keycode[ i ].update(raiseMovement, dropMovement, passTime);
                 if (keycode[ i ].isRaise) {
                     inputCount++;
                 }
             }
-
             moveHorizontal = (-keycode[ 2 ].val) + keycode[ 3 ].val;
             moveVertical = (-keycode[ 1 ].val) + keycode[ 0 ].val;
 
@@ -82,8 +107,8 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
                 changeFaceDir(cameraLookAtPoint.instance.lockDownTargetlookAtEuler.y);
             }
 
+            //移動處理
             Vector3 moveDir = new Vector3(moveHorizontal, 0.0f, moveVertical) * (speed * Time.deltaTime);
-            heightY -= gravity * Time.deltaTime;
             moveDir.y = heightY;
             if (Input.GetKeyDown(KeyCode.Space)) {
                 heightY = jump;
@@ -97,49 +122,25 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
             moveDir = Quaternion.Euler(0, cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y, 0) * moveDir;
             playerCharController.Move(moveDir);
         } else {
-
-            moveHorizontal = Input.GetAxis("Horizontal");
-            moveVertical = Input.GetAxis("Vertical");
-            if (moveHorizontal < 0.1F && moveHorizontal > -0.1F) {
+            //手把輸入
+                moveHorizontal = Input.GetAxis("Horizontal");
+                moveVertical = Input.GetAxis("Vertical");
+            if (isSliding) {
                 moveHorizontal = 0;
-            }
-            if (moveVertical < 0.1F && moveVertical > -0.1F) {
                 moveVertical = 0;
             }
-            /*
-            if (Input.GetAxis("Horizontal") > moveHorizontal) {
-                HdropLerpSystem = new FloatLerp();
-                HraiseLerpSystem.startLerp(moveHorizontal, Input.GetAxis("Horizontal"), raiseMovement, passTime);
-                if (HraiseLerpSystem != null && HraiseLerpSystem.isLerping) {
-                        moveHorizontal = HraiseLerpSystem.update();
-                }
-            } else {
-                HraiseLerpSystem = new FloatLerp();
-                HdropLerpSystem.startLerp(moveHorizontal, Input.GetAxis("Horizontal"), dropMovement, passTime);
-                if (HdropLerpSystem != null && HdropLerpSystem.isLerping) {
-                        moveHorizontal = HdropLerpSystem.update();
-                }
-            }
 
-            if (Input.GetAxis("Horizontal") > moveVertical) {
-                VdropLerpSystem = new FloatLerp();
-                VraiseLerpSystem.startLerp(moveVertical, Input.GetAxis("Vertical"), raiseMovement, passTime);
-                if (VraiseLerpSystem != null && VraiseLerpSystem.isLerping) {
-                        moveVertical = VraiseLerpSystem.update();
-                }
-            } else {
-                VraiseLerpSystem = new FloatLerp();
-                VdropLerpSystem.startLerp(moveVertical,  Input.GetAxis("Vertical"), dropMovement, passTime);
-                if (VdropLerpSystem != null && VdropLerpSystem.isLerping) {
-                        moveVertical = VdropLerpSystem.update();
-                }
-            }
-            */
-            
+            sprintControll();
+
+            //防止手把輸入出現餘數
+            gameModel.instance.joystickInputResidueFixer(ref moveHorizontal);
+            gameModel.instance.joystickInputResidueFixer(ref moveVertical);
             float inputAngles = 0;
             if (!playerController.instance.isLockDown) {
                 if (moveHorizontal == 0 && moveVertical == 0) {
                 } else {
+                    //HV輸入都沒有0時就令camera角度同步至inputAngles
+                    //手把camera角度處理
                     inputAngles = Mathf.Atan2(moveVertical, moveHorizontal) * Mathf.Rad2Deg;
                     inputAngles -= 90 - 180;
                     inputAngles += cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y;
@@ -148,24 +149,69 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
                     } else if (inputAngles < 0) {
                         inputAngles += 360;
                     }
-                    //changeFaceDir(inputAngles + cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y);
+                    //以Slerp方式同式
                     transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(transform.rotation.eulerAngles.x, inputAngles, transform.rotation.eulerAngles.z),Time.deltaTime* turnAroundSpeed);
+                    //假如旋轉角度過大時就馬上急停HV速度
                     if (Mathf.Abs(transform.rotation.eulerAngles.y - inputAngles) >= turnAroundDetectAngles && Mathf.Abs(transform.rotation.eulerAngles.y - inputAngles) <= 210) {
+                        //playerModelAnimator.SetTrigger("isTurn");
                         moveHorizontal = 0;
                         moveVertical = 0;
+                        resetSprint();
                     }
                 }
             } else {
+                //在鎖定時，強制看著鎖定對象
                 changeFaceDir(cameraLookAtPoint.instance.lockDownTargetlookAtEuler.y);
             }
-
-            Vector3 moveDir = new Vector3(moveHorizontal, 0.0f, -moveVertical) * (speed * Time.deltaTime);
-            heightY -= gravity * Time.deltaTime;
+            //移動處理
+            Vector3 moveDir = new Vector3(moveHorizontal, 0.0f, -moveVertical) * (speed) * (SprintSpeedPercentage/100f);
             moveDir.y = heightY;
             moveDir = Quaternion.Euler(0, cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y, 0) * moveDir;
-            playerCharController.Move(moveDir);
+            moveDir += slidingDirection;
+            print(slidingDirection);
+            playerCharController.Move(moveDir * Time.deltaTime);
         }
-        playerModelAnimator.SetFloat("HInput", (Mathf.Abs(moveHorizontal )));
+        //設定動畫
+        animatorSendVal();
+    }
+
+    public void sprintControll() {
+        if (Input.GetButtonDown("Sprint")) {
+            isSprint = true;
+            sprintSpeedRaiseLerpSystem.startLerp(100, orlSprintSpeedPercentage, sprintSpeedRaiseMovement, sprintTime);
+        }
+        if (Input.GetButtonUp("Sprint")) {
+            isSprint = false;
+            sprintSpeedRaiseLerpSystem = new FloatLerp();
+            SprintSpeedPercentage = 100;
+        }
+        if (isSprint && sprintSpeedRaiseLerpSystem.isLerping) {
+            SprintSpeedPercentage = sprintSpeedRaiseLerpSystem.update();
+        }
+    }
+    public void resetSprint() {
+        if (isSprint) {
+            sprintSpeedRaiseLerpSystem = new FloatLerp();
+            SprintSpeedPercentage = 100;
+            sprintSpeedRaiseLerpSystem.startLerp(100, orlSprintSpeedPercentage, sprintSpeedRaiseMovement, sprintTime);
+        }
+    }
+
+
+    public void gravityControll() {
+        heightY = -(gravity );
+        if (playerCharController.isGrounded) {
+            inAirTime = 0;
+            heightY = -(gravity);
+        } else {
+            inAirTime += Time.deltaTime;
+            heightY -= gravity * 2 * ((inAirTime + 1));
+        }
+    }
+
+    //設定動畫
+    public void animatorSendVal() {
+        playerModelAnimator.SetFloat("HInput", (Mathf.Abs(moveHorizontal)));
         playerModelAnimator.SetFloat("VInput", (Mathf.Abs(moveVertical)));
     }
 
@@ -185,6 +231,24 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
         }
     }
 
+    void OnControllerColliderHit(ControllerColliderHit hit) {
+        float myAng = Vector3.Angle(Vector3.up, hit.normal); //Calc angle between normal and character
+        print(myAng);
+
+        if (myAng > playerCharController.slopeLimit) {
+            isSliding = true;
+
+            Vector3 normal = hit.normal;
+            Vector3 c = Vector3.Cross(Vector3.up, normal);
+            Vector3 u = Vector3.Cross(c, normal);
+            slidingDirection = u * 4f;
+
+        } else {
+            isSliding = false;
+            slidingDirection = Vector3.zero;
+        }
+
+    }
 }
 
 
@@ -236,4 +300,7 @@ public class customizeMovement {
         val = 0;
         isRaise = false;
     }
+
+
+
 }

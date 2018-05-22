@@ -12,4 +12,10 @@ public class gameModel : SingletonMonoBehavior<gameModel> {
         Vector3 relativePos = lookAtPointY - lookAtPointX;
         return Quaternion.LookRotation(relativePos);
     }
+    public void joystickInputResidueFixer(ref float number) {
+        if (number < 0.1F && number > -0.1F) {
+            number = 0;
+        }
+    }
+
 }

@@ -17,16 +17,16 @@ public class cameraLookAtPoint : SingletonMonoBehavior<cameraLookAtPoint> {
 
     private float rotY = 0.0f; // rotation around the up/y axis
     private float rotX = 0.0f; // rotation around the right/x axis
+    Camera mycam; 
 
-                               // Use this for initialization
     void Start () {
+        mycam = Camera.main;
         Vector3 rot = transform.localRotation.eulerAngles;
         rotY = rot.y;
         rotX = rot.x;
     }
 
     public Vector3 lockDownTargetlookAtEuler;
-
 
     // Update is called once per frame
     public void cameraLookAtPointUpdate () {
@@ -41,52 +41,44 @@ public class cameraLookAtPoint : SingletonMonoBehavior<cameraLookAtPoint> {
         }
         forceFollowTargetCentre();
 
-        /*
-        if ( Mathf.Abs(playermovement.instance.moveHorizontal)<=0.1f && Mathf.Abs(playermovement.instance.moveVertical) >= 0.1f ) {
-            transform.position = Vector3.Lerp(transform.position, targetPoint, Time.deltaTime * lerpSpeed * 3f);
-        } else {
-            transform.position = Vector3.Lerp(transform.position, targetPoint, Time.deltaTime * lerpSpeed);
-        }
-        */
-
         transform.position = Vector3.Lerp(transform.position, new Vector3(targetPoint.x, targetPoint.y+0.5f, targetPoint.z), Time.deltaTime * lerpSpeed * (1+(3f* Mathf.Abs(playermovement.instance.moveVertical) )));
 
+        //不在鎖定目標時
         if (!playerController.instance.isLockDown) {
-            mouseControllCameraAngles();
+            //控制鏡頭角度
+            ControllCameraAngles();
         }
 
     }
 
-    void mouseControllCameraAngles() {
-        Camera mycam = Camera.main;
 
+    //控制鏡頭角度
+    void ControllCameraAngles() {
         transform.LookAt(mycam.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, mycam.nearClipPlane)), Vector3.up);
-
         float mouseX = 0;
         float mouseY = 0;
+        //使用鍵盤
         if (playerController.instance.isKeyboard) {
             mouseX = Input.GetAxis("Mouse X");
             mouseY = -Input.GetAxis("Mouse Y");
         } else {
+            //使用手把
             mouseX = Input.GetAxis("joystick X");
             mouseY = -Input.GetAxis("joystick Y");
-            if (mouseX < 0.15F && mouseX > -0.15F) {
-                mouseX = 0;
-            }
-            if (mouseY < 0.15F && mouseY > -0.15F) {
-                mouseY = 0;
-            }
+            //防止手把輸入出現餘數
+            gameModel.instance.joystickInputResidueFixer(ref mouseX);
+            gameModel.instance.joystickInputResidueFixer(ref mouseY);
             mouseX *= 2.2f;
             mouseY *= 2.2f;
         }
-   
+        mouseX += playermovement.instance.moveHorizontal * 0.7f;
 
         rotY += mouseX * mouseSensitivity * Time.deltaTime;
         rotX += mouseY * mouseSensitivity * Time.deltaTime;
-
+        
         rotX = Mathf.Clamp(rotX, -clampAngle, clampAngle);
 
-        Quaternion localRotation = Quaternion.Euler(rotX, rotY, 0.0f);
+        Quaternion localRotation = Quaternion.Euler(rotX , rotY, 0.0f);
         transform.rotation = localRotation;
     }
 
