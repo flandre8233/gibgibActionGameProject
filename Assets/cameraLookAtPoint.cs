@@ -49,7 +49,7 @@ public class cameraLookAtPoint : SingletonMonoBehavior<cameraLookAtPoint> {
         }
         */
 
-        transform.position = Vector3.Lerp(transform.position, targetPoint, Time.deltaTime * lerpSpeed * (1+(3f* Mathf.Abs(playermovement.instance.moveVertical) )));
+        transform.position = Vector3.Lerp(transform.position, new Vector3(targetPoint.x, targetPoint.y+0.5f, targetPoint.z), Time.deltaTime * lerpSpeed * (1+(3f* Mathf.Abs(playermovement.instance.moveVertical) )));
 
         if (!playerController.instance.isLockDown) {
             mouseControllCameraAngles();
