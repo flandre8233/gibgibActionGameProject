@@ -1794,7 +1794,7 @@ MonoBehaviour:
   lockDownTarget: {fileID: 0}
   orlLerpSpeed: 2
   mouseSensitivity: 100
-  clampAngle: 80
+  clampAngle: 60
   lockDownTargetlookAtEuler: {x: 0, y: 0, z: 0}
 --- !u!114 &114800425629725952
 MonoBehaviour:
