@@ -1825,7 +1825,7 @@ MonoBehaviour:
   gravity: 1.5
   jump: 0.5
   turnAroundSpeed: 7
-  turnAroundDetectAngles: 60
+  turnAroundDetectAngles: 120
   keycode:
   - val: 0
     keyCode: 119

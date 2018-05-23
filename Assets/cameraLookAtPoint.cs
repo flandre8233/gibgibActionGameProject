@@ -68,10 +68,34 @@ public class cameraLookAtPoint : SingletonMonoBehavior<cameraLookAtPoint> {
             //防止手把輸入出現餘數
             gameModel.instance.joystickInputResidueFixer(ref mouseX);
             gameModel.instance.joystickInputResidueFixer(ref mouseY);
-            mouseX *= 2.2f;
-            mouseY *= 2.2f;
+            float absMouseX = Mathf.Abs(mouseX);
+            float absMouseY = Mathf.Abs(mouseY);
+
+            if (absMouseX > 0.8f) {
+                mouseX *= 4f;
+            } else if(absMouseX > 0.35f) {
+                mouseX *= 2.2f;
+            } else {
+                mouseX *= 1.5f;
+            }
+            if (absMouseY > 0.8f) {
+                mouseY *= 4f;
+            } else if (absMouseY > 0.35f) {
+                mouseY *= 2.2f;
+            } else {
+                mouseY *= 1.5f;
+            }
         }
-        mouseX += playermovement.instance.moveHorizontal * 0.7f;
+        float moveHVal = playermovement.instance.moveHorizontal;
+        float absMoveHVal = Mathf.Abs(moveHVal);
+        if (absMoveHVal > 0.8f) {
+            moveHVal *= 1.2f;
+        } else if (absMoveHVal > 0.35f) {
+            moveHVal *= 0.75f;
+        } else {
+            moveHVal *= 0.35f;
+        }
+        mouseX += (moveHVal * 0.7f);
 
         rotY += mouseX * mouseSensitivity * Time.deltaTime;
         rotX += mouseY * mouseSensitivity * Time.deltaTime;

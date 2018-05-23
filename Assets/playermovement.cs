@@ -50,10 +50,6 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
     float SprintSpeedPercentage;
     [SerializeField]
      AnimationCurve sprintSpeedRaiseMovement;
-
-    
-
-
     // Use this for initialization
     void Start() {
         speed = orl_speed;
@@ -107,9 +103,6 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
                 changeFaceDir(cameraLookAtPoint.instance.lockDownTargetlookAtEuler.y);
             }
 
-            //移動處理
-            Vector3 moveDir = new Vector3(moveHorizontal, 0.0f, moveVertical) * (speed * Time.deltaTime);
-            moveDir.y = heightY;
             if (Input.GetKeyDown(KeyCode.Space)) {
                 heightY = jump;
             }
@@ -119,8 +112,7 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
             if (Input.GetKeyUp(KeyCode.LeftShift)) {
                 speed = orl_speed;
             }
-            moveDir = Quaternion.Euler(0, cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y, 0) * moveDir;
-            playerCharController.Move(moveDir);
+
         } else {
             //手把輸入
                 moveHorizontal = Input.GetAxis("Horizontal");
@@ -163,14 +155,11 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
                 //在鎖定時，強制看著鎖定對象
                 changeFaceDir(cameraLookAtPoint.instance.lockDownTargetlookAtEuler.y);
             }
-            //移動處理
-            Vector3 moveDir = new Vector3(moveHorizontal, 0.0f, -moveVertical) * (speed) * (SprintSpeedPercentage/100f);
-            moveDir.y = heightY;
-            moveDir = Quaternion.Euler(0, cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y, 0) * moveDir;
-            moveDir += slidingDirection;
-            print(slidingDirection);
-            playerCharController.Move(moveDir * Time.deltaTime);
+            
         }
+        //移動處理
+        moveControll();
+
         //設定動畫
         animatorSendVal();
     }
@@ -209,6 +198,14 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
         }
     }
 
+    public void moveControll() {
+        Vector3 moveDir = new Vector3(moveHorizontal, 0.0f, -moveVertical) * (speed) * (SprintSpeedPercentage / 100f);
+        moveDir.y = heightY;
+        moveDir = Quaternion.Euler(0, cameraLookAtPoint.instance.gameObject.transform.rotation.eulerAngles.y, 0) * moveDir;
+        moveDir += slidingDirection;
+        playerCharController.Move(moveDir * Time.deltaTime);
+    }
+
     //設定動畫
     public void animatorSendVal() {
         playerModelAnimator.SetFloat("HInput", (Mathf.Abs(moveHorizontal)));
@@ -233,8 +230,6 @@ public class playermovement : SingletonMonoBehavior<playermovement> {
 
     void OnControllerColliderHit(ControllerColliderHit hit) {
         float myAng = Vector3.Angle(Vector3.up, hit.normal); //Calc angle between normal and character
-        print(myAng);
-
         if (myAng > playerCharController.slopeLimit) {
             isSliding = true;
 
